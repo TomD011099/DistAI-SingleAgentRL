@@ -13,7 +13,7 @@ if __name__ == "__main__":
         DQNTrainer,
         # checkpoint_freq=10,
         checkpoint_at_end=True,
-        stop={"episodes_total": 4000},
+        stop={"episodes_total": 10000},
         config={
             "num_gpus": 0,
             "num_workers": 1,
@@ -27,8 +27,8 @@ if __name__ == "__main__":
             "lr": 0.0005,  # tune.grid_search([0.0005, 0.001]),
             "ex_buf_len": 10000,
             "disc": 0.95,
-            "eps": 80.000,
-            "ex_buf_sample_size": 200,
+            "eps": 0.5,
+            "ex_buf_sample_size": 2000,
 
             "dqn_model": {
                 "custom_model": "DQNModel",
@@ -37,14 +37,30 @@ if __name__ == "__main__":
                         {
                             "type": "linear",
                             "input": 4,
-                            "output": 2
+                            "output": 32
                         },
                         {
                             "type": "relu",
                         },
                         {
                             "type": "linear",
-                            "input": 2,
+                            "input": 32,
+                            "output": 64
+                        },
+                        {
+                            "type": "relu",
+                        },
+                        {
+                            "type": "linear",
+                            "input": 64,
+                            "output": 32
+                        },
+                        {
+                            "type": "relu",
+                        },
+                        {
+                            "type": "linear",
+                            "input": 32,
                             "output": 2
                         }
                     ]

@@ -18,7 +18,7 @@ DEFAULT_CONFIG = with_common_config({
     "lr": 0,
     "ex_buf_len": 2000,
     "disc": 1,
-    "eps": 10,
+    "eps": 0.1,
     "ex_buf_sample_size": 100,
 
     "dqn_model": {

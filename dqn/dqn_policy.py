@@ -64,18 +64,15 @@ class DQNPolicy(Policy):
         self.ex_buf = deque(maxlen=self.ex_buf_len)
 
     def greedy(self, value):
-        chance = random.randint(1, 100)
-        if chance < self.eps:
+        if random.random() < self.eps:
             out = self.action_space.sample()
         else:
             out = torch.argmax(value).item()
         self.eps = self.eps * 0.9999
-        print(self.eps)
         return out
 
     # Worker function
     # Will decide which action to take, based on the obs
-    # Only 1 obs and subsequently, 1 action
     def compute_actions(self,
                         obs_batch,
                         state_batches=None,
@@ -120,29 +117,38 @@ class DQNPolicy(Policy):
             s_n_obs = samples["new_obs"][i]
             self.ex_buf.append((s_obs, s_action, s_reward, s_done, s_n_obs))
 
-        # Take samples from the experience buffer
-        l_obs, l_actions, l_rewards, l_dones, l_n_obs = zip(*random.sample(self.ex_buf, self.ex_buf_sample_size))
+        if len(self.ex_buf) >= self.ex_buf_sample_size:
+            # Take samples from the experience buffer
+            l_obs, l_actions, l_rewards, l_dones, l_n_obs = zip(*random.sample(self.ex_buf, self.ex_buf_sample_size))
 
-        obs_batch_t = torch.tensor(l_obs).type(torch.FloatTensor)
-        action_batch_t = torch.tensor(l_actions)
-        rewards_batch_t = torch.tensor(l_rewards)
-        done_t = torch.tensor(l_dones)
-        new_obs_batch_t = torch.tensor(l_n_obs).type(torch.FloatTensor)
-        optimal_q_t, _ = torch.max(self.dqn_model(new_obs_batch_t), dim=1)
-        optimal_q_t[done_t] = 0
+            obs_batch_t = torch.tensor(l_obs).type(torch.FloatTensor)
+            action_batch_t = torch.tensor(l_actions)
+            rewards_batch_t = torch.tensor(l_rewards)
+            done_t = torch.tensor(l_dones)
+            new_obs_batch_t = torch.tensor(l_n_obs).type(torch.FloatTensor)
 
-        action_batch_t = action_batch_t.unsqueeze(-1)
-        guess_t = torch.gather(self.dqn_model(obs_batch_t), 0, action_batch_t)
+            # Q max
+            optimal_q_t, _ = torch.max(self.dqn_model(new_obs_batch_t), dim=1)
 
-        criterion = nn.MSELoss()
-        # Calculate the loss
-        loss = criterion(guess_t, (rewards_batch_t + self.discount * optimal_q_t))
-        self.optimizer.zero_grad()
-        # Backward the mean of the losses (sum() could also be used, but is bad if batch size changes)
-        loss.mean().backward()
-        self.optimizer.step()
+            # Set q max to 0 when done = True
+            optimal_q_t[done_t] = 0
 
-        return {"learner_stats": {"loss": loss.item()}}
+            action_batch_t = action_batch_t.unsqueeze(-1)
+            guess_t = torch.gather(self.dqn_model(obs_batch_t), 0, action_batch_t)
+
+            # Calculate the loss
+            criterion = nn.MSELoss()
+            loss = criterion(guess_t, (rewards_batch_t + self.discount * optimal_q_t))
+
+            # Backward the mean of the losses (sum() could also be used, but is bad if batch size changes)
+            self.optimizer.zero_grad()
+            loss.mean().backward()
+            self.optimizer.step()
+            out = loss.item()
+        else:
+            out = "Not training"
+
+        return {"learner_stats": {"loss": out}}
 
     # Trainer function
     def get_weights(self):

@@ -41,6 +41,8 @@ class DQNModel(nn.Module, TorchModelV2):
             else:
                 print("ERR: couldn't find layer named: " + l_type)
 
+        print(self.layers)
+
     @override(TorchModelV2)
     def forward(self, obs):
         return self.layers(obs)
