@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     tune.run(
         DQNTrainer,
-        # checkpoint_freq=10,
+        checkpoint_freq=10,
         checkpoint_at_end=True,
         stop={"episodes_total": 10000},
         config={
@@ -24,11 +24,13 @@ if __name__ == "__main__":
             ########################################
             # Parameters Agent
             ########################################
-            "lr": 0.0005,  # tune.grid_search([0.0005, 0.001]),
+            "lr": tune.grid_search([0.0005, 0.001]),
             "ex_buf_len": 10000,
-            "disc": 0.95,
+            "disc": tune.grid_search([0.95, 0.8]),
             "eps": 0.5,
-            "ex_buf_sample_size": 2000,
+            "eps_decay": 0.999,
+            "eps_min": 0.0005,
+            "ex_buf_sample_size": tune.grid_search([2000, 5000]),
 
             "dqn_model": {
                 "custom_model": "DQNModel",
@@ -56,7 +58,7 @@ if __name__ == "__main__":
                             "output": 32
                         },
                         {
-                            "type": "relu",
+                            "type": "l_relu",
                         },
                         {
                             "type": "linear",

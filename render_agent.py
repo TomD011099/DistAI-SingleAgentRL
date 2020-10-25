@@ -8,11 +8,11 @@ from ray.rllib.models import ModelCatalog
 from dqn import DQNTrainer, DQNModel
 
 if __name__ == "__main__":
-    folder = "/home/tom/ray_results/DQNAlgorithm/DQNAlgorithm_CartPole-v1_b4737_00000_0_2020-10-24_13-11-46"
+    folder = "/home/tom/ray_results/DQNAlgorithm/DQNAlgorithm_CartPole-v1_a2b94_00000_0_2020-10-25_10-22-43"
 
     env_name = "CartPole-v1"
-    checkpoint = 572
-    num_episodes = 10       # Was 1, amount of episodes to run
+    checkpoint = 484
+    num_episodes = 10
 
     # Def env
     env = gym.make(env_name)

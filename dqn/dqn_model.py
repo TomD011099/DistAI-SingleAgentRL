@@ -27,6 +27,7 @@ class DQNModel(nn.Module, TorchModelV2):
         conf_layers = model_config["custom_model_config"]["layers"]
         lin_cnt = 0
         relu_cnt = 0
+        l_relu_cnt = 0
 
         for layer in conf_layers:
             l_type = layer["type"]
@@ -38,10 +39,12 @@ class DQNModel(nn.Module, TorchModelV2):
                 name = "relu_" + str(relu_cnt)
                 relu_cnt += 1
                 self.layers.add_module(name, nn.ReLU())
+            elif l_type == "l_relu":
+                name = "leaky_relu_" + str(l_relu_cnt)
+                l_relu_cnt += 1
+                self.layers.add_module(name, nn.LeakyReLU())
             else:
                 print("ERR: couldn't find layer named: " + l_type)
-
-        print(self.layers)
 
     @override(TorchModelV2)
     def forward(self, obs):
